@@ -17,8 +17,8 @@ test_limits <- function(iteration) {
   #   probability of the event occurring. These are placed at the end of the
   #   observations so that we can label them easily.
   numerators <- c(
-    rbinom(numerators = 20, size = denominators[1:20], p = 0.5),
-    rbinom(numerators = 10, size = denominators[21:30], p = 0.8)
+    rbinom(n = 20, size = denominators[1:20], p = 0.5),
+    rbinom(n = 10, size = denominators[21:30], p = 0.8)
   )
 
   # Pack the generated observations into a single dataframe
