@@ -51,14 +51,14 @@ PR_model =
 
     ## Running MCMC with 4 parallel chains...
     ## 
-    ## Chain 4 finished in 0.7 seconds.
-    ## Chain 1 finished in 0.8 seconds.
-    ## Chain 2 finished in 0.8 seconds.
-    ## Chain 3 finished in 0.8 seconds.
+    ## Chain 1 finished in 0.3 seconds.
+    ## Chain 2 finished in 0.3 seconds.
+    ## Chain 3 finished in 0.3 seconds.
+    ## Chain 4 finished in 0.3 seconds.
     ## 
     ## All 4 chains finished successfully.
-    ## Mean chain execution time: 0.8 seconds.
-    ## Total execution time: 1.2 seconds.
+    ## Mean chain execution time: 0.3 seconds.
+    ## Total execution time: 0.6 seconds.
 
 ## Extract Results
 

@@ -3,7 +3,6 @@ title: "Bayesian GLMM For Hospital Monitoring"
 author: "Andrew Johnson"
 date: "18/02/2022"
 output: github_document
-pandoc_args: --webtex
 ---
 
 ```{r setup, include=FALSE}

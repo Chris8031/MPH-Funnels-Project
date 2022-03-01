@@ -104,11 +104,17 @@ that we can use normal-data methods.
 The method we use is called the ‘inverse-sine’ or ‘arcsine’ method. This
 involves first taking the square-root of the proportion, and then taking
 the arcsine of that proportion. In other words, if we define the
-numerator as *n* and the denominator as *N*, the arcsine transformation
-for a given observation is:
-$$
+numerator as
+![n](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;n "n")
+and the denominator as
+![N](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;N "N"),
+the arcsine transformation for a given observation is:
+
+![
 y = \\sin^{-1}\\left(\\sqrt{\\frac{n}{N}}\\right)
-$$
+](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%0Ay%20%3D%20%5Csin%5E%7B-1%7D%5Cleft%28%5Csqrt%7B%5Cfrac%7Bn%7D%7BN%7D%7D%5Cright%29%0A "
+y = \sin^{-1}\left(\sqrt{\frac{n}{N}}\right)
+")
 
 This transforms the data to something that approximately resembles a
 normal distribution, and so we can use normal-data approach to
@@ -118,19 +124,28 @@ standard error is derived as a function of the number of observations
 (size of the denominator). To derive the mean (target line) for
 proportion data, we use the overall proportion (sum of all numerators
 divided by the sum of all denominators):
-$$
+
+![
 p = \\frac{\\sum{n}}{\\sum{N}}
-$$
+](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%0Ap%20%3D%20%5Cfrac%7B%5Csum%7Bn%7D%7D%7B%5Csum%7BN%7D%7D%0A "
+p = \frac{\sum{n}}{\sum{N}}
+")
 
 And apply the transformation to that:
-$$
+
+![
 \\theta = \\sin^{-1}\\left(\\sqrt{p}\\right)
-$$
+](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%0A%5Ctheta%20%3D%20%5Csin%5E%7B-1%7D%5Cleft%28%5Csqrt%7Bp%7D%5Cright%29%0A "
+\theta = \sin^{-1}\left(\sqrt{p}\right)
+")
 
 The standard error for a given observation is then given by:
-$$
+
+![
 SE = \\frac{1}{2\\sqrt{N}}
-$$
+](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%0ASE%20%3D%20%5Cfrac%7B1%7D%7B2%5Csqrt%7BN%7D%7D%0A "
+SE = \frac{1}{2\sqrt{N}}
+")
 
 Next, we’ll add these to our dataset:
 
@@ -163,8 +178,15 @@ knitr::kable(plot_data)
 | o        |        44 |          73 | 0.5383663 | 0.8238022 | 0.0585206 |
 
 To generate control limits using these values, we need to use the
-critical values of the standard normal (*z*<sub>*a*</sub>):
-*θ* ± *z*<sub>*α*</sub> \* *S**E*
+critical values of the standard normal
+(![z\_a](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;z_a "z_a")):
+
+![
+\\theta  \\pm z\_\\alpha \* SE
+](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%0A%5Ctheta%20%20%5Cpm%20z_%5Calpha%20%2A%20SE%0A "
+\theta  \pm z_\alpha * SE
+")
+
 Commonly, 2 & 3 are used as the critical values for the 95% and 99%
 limits, respectively (e.g., 3 SD). However, these are slightly off, and
 it is more precise to use the `qnorm` function in R:
@@ -203,7 +225,12 @@ transformed), but for ease of interpretability, we want to
 back-transform the limits to the proportion scale. To do this, we just
 need to apply the opposite transformations in the reverse order (i.e.,
 sine and square, rather than arcsine and square-root):
-*p* = (sin(*θ*))<sup>2</sup>
+
+![
+p = (\\sin(\\theta))^2
+](https://latex.codecogs.com/png.image?%5Cdpi%7B110%7D&space;%5Cbg_white&space;%0Ap%20%3D%20%28%5Csin%28%5Ctheta%29%29%5E2%0A "
+p = (\sin(\theta))^2
+")
 
 Which we complete in R as:
 
