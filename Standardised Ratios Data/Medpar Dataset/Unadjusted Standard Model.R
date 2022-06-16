@@ -175,7 +175,7 @@ funplot_AREM1 <- ggplot(df9, aes(x=predict, y=SR, label = provnum)) +
 funplot_AREM1  
   
   
-################################
+Q################################
 # Compare with Mainney Package
   funplot_Mainney <- FunnelPlotR::funnel_plot(numerator = df9$los, 
                                            denominator = df9$predict, 
