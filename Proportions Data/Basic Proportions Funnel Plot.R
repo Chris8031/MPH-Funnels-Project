@@ -19,6 +19,11 @@ agg_data = raw_data %>%
   summarise(across(c(numerators, denominators), sum)) %>%
   ungroup()
 view(agg_data)
+# Method 1 Pure unadjusted 
+
+
+
+# Method 2: transform variables 
 plot_data2 <- agg_data %>%
   mutate( y = asin(sqrt(numerators/denominators)),
           p = sum(numerators)/sum(denominators),
@@ -52,20 +57,6 @@ funplot <- ggplot(plot_data1, aes(x=denominators, y=numerators/denominators,
   geom_line(aes(y=ul95)) +
   theme_dark()
 funplot
-# Spiegelhalter's MAM
-head(plot_data2)
-# transformed z-score calculation
-plot_data3 <- plot_data2 %>%
-  mutate(z = {y-target}/se)
-glimpse(plot_data3)
-# attempt winsorise
-plot_data_winsor <- plot_data3 %>%
-  mutate(z_adj = Winsorize(plot_data3$z, probs=c(0.10, 0.90)))
-view(plot_data_winsor)
-# Create an overdispersion ratio
-phi <- ((sum(plot_data_winsor$z_adj)^2))/nrow(plot_data_winsor)
-phi
-  
 
 
 
