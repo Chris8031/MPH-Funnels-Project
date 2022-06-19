@@ -103,7 +103,7 @@ funplot_MAM2
 sqrt(phi_z) - 1
 #> 2.05. Does this mean it is overdispersed by 205%?
 
-
+##############################################################################
 # Spiegelhalter's AREM
 # Clean up dataset prior to modelling
 df8 <- df7 %>%
