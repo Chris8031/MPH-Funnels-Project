@@ -1,5 +1,5 @@
-# Fitting funnel plot models to SMR
-# Mainey's Dataset
+#################################
+# Preamble
 library(tidyr)
 library(tidyverse)
 library(DescTools)

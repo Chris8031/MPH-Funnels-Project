@@ -60,7 +60,7 @@ summary(plot_data_winsor$z_adj)
 phi <- ((sum(plot_data_winsor$z_adj^2)))/nrow(plot_data_winsor)
 phi
 # Test for overdispersion
-phi > (nrow(plot_data_winsor)-1)/nrow(plot_data_winsor)
+phi > (nrow(plot_data_winsor)-1))/nrow(plot_data_winsor)
 # If true, construct control limits
   # Method 1, used undertransformed se
 plot_data4 <- plot_data3 %>%

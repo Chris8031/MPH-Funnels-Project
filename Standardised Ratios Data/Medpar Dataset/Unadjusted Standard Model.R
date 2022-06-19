@@ -32,11 +32,11 @@ df2 <- df1 %>%
 df2 <- df2 %>%
   mutate(SR = los/predict,
          target = 1,
-         cl = sqrt(1/predict)) # from Appendix A.1 Spiegelhalter 2012
+         cl = sqrt(1/predict)) 
 # Add control limits
 df3 <- df2 %>%
   mutate(target = 1,
-         s =sqrt(1/predict)) %>%
+         s =sqrt(1/predict)) %>% # from Appendix A.1 Spiegelhalter 2012
   mutate(s_squared = 1/predict) %>%
   mutate(ll99 = target - cl99*s,
          up99 = target + cl99*s,
