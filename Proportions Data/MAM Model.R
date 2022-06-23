@@ -68,7 +68,7 @@ plot_data4 <- plot_data3 %>%
          ul99_trans = target_p + a99*se*sqrt(phi),
          ll95_trans = target_p - a95*se*sqrt(phi),
          ul95_trans = target_p + a95*se*sqrt(phi))
-head(plot_data4)
+glimpse(plot_data4)
 funplot_MAM_transformed <- ggplot(plot_data4, aes(x=denominators, 
                                       y = y,
                                       label = hospital)) +
@@ -79,6 +79,7 @@ funplot_MAM_transformed <- ggplot(plot_data4, aes(x=denominators,
   geom_line(aes(y=ll95_trans)) +
   geom_line(aes(y=ul95_trans))
 funplot_MAM_transformed
+# No outliers
   # Method 2: use transformed se and transformed target_p and bacn transform
 glimpse(plot_data4)
 plot_data4a <- plot_data3 %>%
@@ -86,13 +87,14 @@ plot_data4a <- plot_data3 %>%
          ul99_trans = trans_target_p + a99*trans_se*sqrt(phi),
          ll95_trans = trans_target_p - a95*trans_se*sqrt(phi),
          ul95_trans = trans_target_p + a95*trans_se*sqrt(phi))
-head(plot_data4a)
+glimpse(plot_data4a)
   # Back transform limits to proportion scale
   plot_data5 <- plot_data4a %>%
     mutate(ll99 = sin(ll99_trans)^2,
            ul99 = sin(ul99_trans)^2,
            ll95 = sin(ll95_trans)^2,
            ul95 = sin(ul95_trans)^2)
+glimpse(plot_data5)
   funplot_MAM1 <- ggplot(plot_data5, aes(x=denominators, y=y,
                                         label=hospital)) +
     geom_point() +
@@ -102,8 +104,8 @@ head(plot_data4a)
     geom_line(aes(y=ll95)) +
     geom_line(aes(y=ul95)) 
 funplot_MAM1
-  
-  
+# The differences between two methods seem pretty negligible
+# I'll use method 1 moving forward
 
 
 

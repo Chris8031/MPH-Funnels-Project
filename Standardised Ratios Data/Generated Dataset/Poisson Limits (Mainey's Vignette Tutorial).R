@@ -6,7 +6,7 @@ library(DescTools)
 #  Generate fake dataset for standardised ratios
 set.seed(80)
 denominator <- sample(1:20, size = 100, replace = TRUE)
-numerator <-  rpois(100, lambda = denominators)
+numerator <-  rpois(100, lambda = denominator)
 hospital.fn <- function(length.out) {
   a <- rep(letters, length.out = length.out)
 }

@@ -1,38 +1,58 @@
 #Preamble
 library(tidyverse)
 library(DescTools)
+# set critical values for control limits
+a99 <-  qnorm(.999)  
+a95 <- qnorm(.975)
 # Simulate dataset for random proportion indicator
 set.seed(80)
-denominators <- sample(1:100, size = 100, replace = T)
-seq_probability <- seq(0, 1, 0.1)
-rand <-  sample(seq_probability, 1)
-numerators <-  rbinom(n=100, size = denominators, p = rand)
+denominators <- sample(1:20, size = 100, replace = T)
+numerators <-  rbinom(n=100, size = denominators, p = 0.5)
 hospital.fn <- function(length.out) {
   a <- rep(letters, length.out = length.out)
 }
 raw_data <- data.frame(numerators, denominators, hospital = hospital.fn(nrow(raw_data)))
-View(raw_data)
-
-# Convert to agg data
-agg_data = raw_data %>%
-  group_by(hospital) %>%
-  summarise(across(c(numerators, denominators), sum)) %>%
-  ungroup()
-view(agg_data)
+df1 <- raw_data
+head(df1)
+glimpse(df1)
 # Method 1 Pure unadjusted 
+df2 <- df1 %>%
+  mutate(y_i = (numerators/denominators),
+         p = sum(numerators)/sum(denominators)) %>%
+  mutate(s_i_squared = (y_i*(1-y_i))/denominators) %>%
+  mutate(s_i = sqrt(s_i_squared))
+glimpse(df2)         
+# Add control limits
+df3_a <- df2 %>%
+  mutate(ll99 = p - a99*s_i,
+         up99 = p + a99*s_i,
+         ll95 = p - a95*s_i,
+         up95 = p + a95*s_i
+         )
 
+view(df3_a)
+# plot fp
+funplot1 <- ggplot(df3_a,
+                   aes(x=denominators,
+                       y=numerators/denominators,
+                       label = hospital)) +
+  geom_point() +
+  geom_line(aes(y=p)) +
+  geom_line(aes(y=ll99)) +
+  geom_line(aes(y=up99)) +
+  geom_line(aes(y=ll95)) +
+  geom_line(aes(y=up95))
 
+funplot1
+# Okay I have no clue
 
 # Method 2: transform variables 
-plot_data2 <- agg_data %>%
-  mutate( y = asin(sqrt(numerators/denominators)),
-          p = sum(numerators)/sum(denominators),
-         target = asin(sqrt(p)),
+plot_data2 <- df3_a %>%
+  mutate(trans_y_i = asin(sqrt(numerators/denominators)),
+         trans_p = asin(sqrt(p)),
          se = 1/ (2 * sqrt(denominators)))
 View(plot_data2)
-# set critical values for control limits
-a99 <-  qnorm(.999)  
-a95 <- qnorm(.975)
+
 # add control limits
 plot_data1 <- plot_data %>%
   mutate(ll99_trans = target - a99*se,
