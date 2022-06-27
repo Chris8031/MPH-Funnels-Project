@@ -8,6 +8,13 @@ df1 <- Dataset %>%
   mutate(hospital_ID = row_number()) %>%
   rename(numerators = Numerator,
          denominators = Denominator)
+# Vidmar's method adjusts confidence level to sample size. So using his method 
+cl.fn <- function(a){
+  b = 1-a
+  qnorm(b + ((1-b)/2))
+}
+# Control limits when alpha = 0.01
+cl99 <- cl.fn(0.01)
 # Rename variables to correspond with Vidmar's work
 df2 <- df1 %>% # Equation 3.1 in dissertation
   mutate(pi = (numerators/denominators),
@@ -44,10 +51,9 @@ glimpse(df5)
 df5$phi > (nrow(df5)-1)/nrow(df5)
 # Obviously true, as this dataset is insanely overdispersed
 # Now to construct control limits 
-a99 <-  qnorm(.999)  
 df6 <- df5 %>%
-  mutate(ll99 = pm - a99*spi*sqrt(phi),
-         ul99 = pm + a99*spi*sqrt(phi))
+  mutate(ll99 = pm - cl99*spi*sqrt(phi),
+         ul99 = pm + cl99*spi*sqrt(phi))
 funplot_MAM_Vidmar <- ggplot(df6, 
                              aes(x = ni,
                                  y = pi)) +
@@ -62,16 +68,15 @@ outliers <- df6 %>%
            pi <= 0 |
            pi <= ll99)
 view(outliers)
-#> 3 outliers
-#> 2 above cl
-#> 1 slightly below cl
+#> 3 outliers - 2 above cl and 1 slightly below cl
+#> Matches with Vidmar's sheet
 # Method 2: using untransformed z_i
 # This should replicate Vidmar's control limits exactly
 df7 <- df6 %>%
   mutate(z_adj = Winsorize(df6$z_i, probs = c(0.10, 0.90)),
          phi = sum(z_adj^2/nrow(df4)),
-         ll99 = pm - a99*spi*sqrt(phi),
-         ul99 = pm + a99*spi*sqrt(phi)) 
+         ll99 = pm - cl99*spi*sqrt(phi),
+         ul99 = pm + cl99*spi*sqrt(phi)) 
 glimpse(df7)
 funplot_MAM_Vidmar2 <- ggplot(df7, 
                              aes(x = ni,
@@ -87,3 +92,36 @@ outliers2 <- df7 %>%
            pi <= ll99)
 view(outliers2)
 # Same same really
+###############################################
+# Spiegelhalter's AREM
+# spi uses mean (target) proportion 
+df8 <- df7 %>%
+  mutate(s_squared_i = (pi*(1-pi))/ni, # Equation 3.12 in Dissertation
+        w = 1/s_squared_i,
+        tau_numerator = phi*nrow(df7) - (nrow(df7) - 1),
+        tau_demoniator = sum(w) - (sum(w^2)/sum(w)),
+        tau_squared = tau_numerator/tau_demoniator
+                        )
+glimpse(df8)
+# Construct control limits
+df9 <- df8 %>%
+  mutate(ll99_AREM = pm - cl99*(spi+sqrt(tau_squared)),
+         up99_AREM = pm + cl99*(spi+sqrt(tau_squared))) # Equation 3.16
+glimpse(df9)
+# Plot control Limits
+funplot_AREM1 <- ggplot(df9, aes(x=ni, 
+                                  y=pi)) +
+  geom_point() +
+  geom_line(aes(y=pm)) +
+  geom_line(aes(y=ll99_AREM)) +
+  geom_line(aes(y=up99_AREM))
+
+funplot_AREM1  
+# Find outliers 
+outliers_AREM <- df9 %>%
+  filter(pi > up99_AREM |
+           pi == 0 | 
+           pi < ll99_AREM)
+outliers_AREM           
+# So in these 10 outliers - 8 below CL and 2 above
+# Vidmar found 13 

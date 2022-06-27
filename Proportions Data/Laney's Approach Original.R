@@ -56,7 +56,7 @@ funplot_LCM <- ggplot(df7, aes(x=denominators, y=y_i,
   geom_point() +
   geom_line(aes(y=p)) +
   geom_line(aes(y=ll99)) +
-  geom_line(aes(y=ul99), color = "blue") +
+  geom_line(aes(y=ul99)) +
   geom_line(aes(y=ll95)) +
   geom_line(aes(y=ul95)) +
   theme_dark()
