@@ -9,21 +9,29 @@ df1 <- Dataset %>%
   rename(numerators = Numerator,
          denominators = Denominator)
 glimpse(df1)
+pnorm(3)
+# Function for calculating control limits multiplier
+laneys_cl.fn <- function(x) {
+  y <- x + ((1-x)/2)
+  z <- qnorm(y)
+  return(z)
+}
+# for 99cl 
+cl <- laneys_cl.fn(0.99)
+cl
 # Rename variables to correspond with Vidmar's work
 df2 <- df1 %>%
   mutate(pi = (numerators/denominators),
          pm = sum(numerators)/sum(denominators)) %>%
   rename(xi = numerators,
-         ni = denominators) %>%
-  select(-hospital_ID)
+         ni = denominators) 
 #######################################################
 # Laney's approach based on Original paper
 # Compute the standard deviation for each proportion
 df3 <- df2 %>%
   mutate(spi = sqrt((pm*(1-pm))/ni))
 # Rearrange columns to align with excel sheet
-df3 <- df3[,c(3, 1, 2, 5, 4)]
-head(df3)
+df3 <- df3
 # Create standardised z-scores
 df4 <- df3 %>%
   mutate(z_i = (pi-pm)/spi)
@@ -47,17 +55,17 @@ glimpse(df6)
 # However this value can be obtained from Spiegelhalter's MAM model as
 # shown in Vidmar's excel sheet
 df7 <- df6 %>%
-  mutate(ul99 = pm + 3*sigma_piz,
-         ll99 = pm - 3*sigma_piz)
+  mutate(ul99 = pm + cl*sigma_piz,
+         ll99 = pm - cl*sigma_piz)
 glimpse(df7)
 # plot control limits
-funplot_vidmar <- ggplot(df7, aes(x=ni, y=pi,
+funplot_laney <- ggplot(df7, aes(x=ni, y=pi,
                                )) +
   geom_point() +
   geom_line(aes(y=pm)) +
   geom_line(aes(y=ll99)) +
   geom_line(aes(y=ul99)) 
-funplot_vidmar
+funplot_laney
 # test for outliers
 outliers <- df7 %>%
   filter(pi >= ul99 |
@@ -65,3 +73,4 @@ outliers <- df7 %>%
            pi <= ll99)
 view(outliers)
 # Matches with row 146 and 172 (outliers) in Vidmar's xcel sheet
+

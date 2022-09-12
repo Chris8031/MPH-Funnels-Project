@@ -26,6 +26,7 @@ df2 <- df1 %>%
 glimpse(df2)
 # Fit linear model through origin
 lm_df2 <- lm(sqrt_x ~ sqrt_nx+0, data = df2)
+lm_df2
 df3 <- df2 %>%
   mutate(b = lm_df2$coefficients, # Add slope (b) from model to dataset
          res = sqrt_x - (sqrt_nx*b), # Add residuals 
@@ -39,22 +40,29 @@ MSE2
 # 0.1 difference amongst the two. Unclear as to why.
 df4 <- df3 %>%
   mutate(nx = sqrt_nx^2,
-         SSQ = sum(sqrt_nx^2),
+         SSQ = sum(nx),
          delta = adjustment(nrow(df3))*sqrt(MSE*(1+(nx/SSQ))),
          theta = b^2/(1+b^2),
+         theta2 = sum(numerators)/sum(denominators),
          theta_x = theta*denominators,
          sqrt_theta_x = sqrt(theta_x),
          UCL_x = (sqrt_theta_x + delta)^2,
-         LCL_x = (sqrt_theta_x - delta)^2,
+         LCL_x = sign(sqrt_theta_x - delta)*(sqrt_theta_x - delta)^2,
          UCL_p = UCL_x/denominators,
          LCL_p = LCL_x/denominators
          )
+glimpse(df4)
 # Plot Vidmar's chart
 vidmar_plt1 <- ggplot(df4, aes(x = denominators, 
                               y = pi)) +
   geom_point() +
+  geom_line(aes(y=theta2)) +
   geom_line(aes(y=theta)) +
   geom_line(aes(y=UCL_p)) +
   geom_line(aes(y=LCL_p))
 vidmar_plt1
-# figure out sgn function from excel in R
+# Create table for outliers
+outliers_vidmar <- df4 %>%
+  filter(pi >= UCL_p |
+           pi <= LCL_p) 
+view(outliers_vidmar)

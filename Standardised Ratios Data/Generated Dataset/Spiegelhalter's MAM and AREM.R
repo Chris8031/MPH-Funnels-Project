@@ -28,8 +28,7 @@ df2
 df3 <- df2 %>%
   mutate(SR_i = numerator/denominator,
          target = 1,
-         s_i = sqrt(1/denominator),
-         s_i_squared = 1/denominator) # from Appendix A.1 Spiegelhalter 2012
+         s_i = sqrt(1/denominator)) # from Appendix A.1 Spiegelhalter 2012
 glimpse(df3)
 #################################
 # Multiplicative Adjustment Model
@@ -76,7 +75,8 @@ funplot_MAM1 <- ggplot(df6, aes(x=denominator, y=SR_i,
   geom_line(aes(y=ll99_MAM)) +
   geom_line(aes(y=up99_MAM)) +
   geom_line(aes(y=ll95_MAM)) +
-  geom_line(aes(y=up95_MAM)) 
+  geom_line(aes(y=up95_MAM)) +
+  labs(title = MAM)
 funplot_MAM1
 # Test for outliers
 # Find outliers

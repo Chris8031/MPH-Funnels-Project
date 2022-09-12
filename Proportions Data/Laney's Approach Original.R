@@ -61,7 +61,8 @@ funplot_LCM <- ggplot(df7, aes(x=denominators, y=y_i,
   geom_line(aes(y=ul95)) +
   theme_dark()
 funplot_LCM
-
+df7 %>%
+  filter(ll99 <= 0)
 
 
 

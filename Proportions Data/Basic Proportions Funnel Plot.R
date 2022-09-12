@@ -18,19 +18,16 @@ glimpse(df1)
 # Method 1 Pure unadjusted 
 df2 <- df1 %>%
   mutate(y_i = (numerators/denominators),
-         p = sum(numerators)/sum(denominators)) %>%
-  mutate(s_i_squared = (y_i*(1-y_i))/denominators) %>%
-  mutate(s_i = sqrt(s_i_squared))
+         p = sum(numerators)/sum(denominators),
+         s_i = 1/(2 * sqrt(denominators)))
 glimpse(df2)         
 # Add control limits
 df3_a <- df2 %>%
-  mutate(ll99 = p - a99*s_i,
-         up99 = p + a99*s_i,
-         ll95 = p - a95*s_i,
-         up95 = p + a95*s_i
+  mutate(ll99 = p - 3*sqrt(s_i),
+         up99 = p + 3*sqrt(s_i),
+         ll95 = p - 3*sqrt(s_i),
+         up95 = p + 3*sqrt(s_i)
          )
-
-view(df3_a)
 # plot fp
 funplot1 <- ggplot(df3_a,
                    aes(x=denominators,

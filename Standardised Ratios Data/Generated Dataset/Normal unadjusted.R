@@ -11,8 +11,9 @@ set.seed(2)
 # 80 as this is roughly the number of hospitals
 # under WA Health
 denominator <- sample(1:20, size = 80, replace = TRUE)
+denominator
 quantiled <- Quantile(denominator)
-quantiled
+quantiled[3]
 # For numerators, using 25% and 75% quantiled to try and 
 # ensure overdispersion for standardised ratios
 numerator <-  c(rpois(40, lambda = quantiled[2]),
