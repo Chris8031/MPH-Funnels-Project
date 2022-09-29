@@ -162,10 +162,50 @@ funplot_AREM_MAM <- ggplot(df10, aes(
   labs(title = "Funnel Plot with just MAM and AREM CL",
        x = "Expected Number of Deaths",
        y = "HSMR")
-funplot_AREM_MAM
-# Converting wide to long data
+
+
+ggplot(df10, aes(
+  x=Expected, 
+  y=HMSR,
+  label = ID)) +
+  geom_point() +
+  geom_line(aes(y=theta)) +
+  geom_line(aes(y=ll99, color = "Unadjusted")) +
+  geom_line(aes(y=ul99, color = "Unadjusted")) +
+  geom_line(aes(y=ll99_MAM, color = "MAM")) +
+  geom_line(aes(y=ul99_MAM, color = "MAM")) +
+  geom_line(aes(y=ll99_AREM, color = "AREM")) +
+  geom_line(aes(y=ul99_AREM, color = "AREM")) +
+  labs(
+       x = "Expected Number of Deaths",
+       y = "HSMR", 
+       color = "99.7 Control Limits")
+
+
+df10 %>%
+  mutate(
+    HSMR = HMSR * 100,
+    theta_
+  )
+
 glimpse(df10)
-df10_long <- gather(df10, `Control Limit Type`, value, ll99, ul99, ll99_MAM, 
+outlier_table <- df10 %>%
+  summarise(
+    Unadjusted_Outliers = sum(HSMR > ul99 | HSMR < ll99),
+    MAM_Outliers = sum(HSMR > ul99_MAM | HSMR < ll99_MAM),
+    AREM_Outliers = sum(HSMR > ul99_AREM | HSMR < ll99_AREM),
+  )
+
+outlier_table
+
+# Converting wide to long data
+df10_long
+df10_long <- gather(df10, 
+                    key =`Control Limit Type`, 
+                    value, 
+                    ll99, 
+                    ul99, 
+                    ll99_MAM, 
                     ll99_AREM, 
                     ul99_MAM,
                     ll99_AREM,
@@ -194,9 +234,25 @@ funplot_MAM_AREM2 <- ggplot(df10_long2,
 funplot_MAM_AREM2
 
 
+df10_long3 <-  df10_long2 %>%
+  mutate(ll99_value = ifelse(`Control Limit Type` == "ll99", value, 0)
+         )
+view(df10_long3)  
 
 
+ggplot(df10_long3,
+       aes(x = Expected,
+        y = HMSR,
+                                label = ID,
+                            ))+ 
+  geom_point() +
+  geom_line(aes(y=theta)) +
+  geom_line(aes(y = ll99_value[1:108]))
+                
+          
+df10_long3
 
+na.o
 
 
 

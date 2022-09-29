@@ -17,9 +17,9 @@ laneys_cl.fn <- function(x) {
   return(z)
 }
 # for 99cl 
-cl <- laneys_cl.fn(0.99)
+cl <- laneys_cl.fn(0.997)
 cl
-# Rename variables to correspond with Vidmar's work
+# Rename variables to correspond with Vidmar's excel sheet
 df2 <- df1 %>%
   mutate(pi = (numerators/denominators),
          pm = sum(numerators)/sum(denominators)) %>%

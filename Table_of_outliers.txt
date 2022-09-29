@@ -1,0 +1,5 @@
+Model &Above 99CL &Below 99CL\\
+1 &Laney &3 &1\\
+2 &Vidmar &0 &0\\
+3 &MAM &0 &0\\
+4 &AREM &0 &0\\

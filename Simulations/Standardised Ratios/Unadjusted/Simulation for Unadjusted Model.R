@@ -1,6 +1,7 @@
 #################
 # Preable
 # Load Packages
+library(ggpubr)
 library(FunnelPlotR)
 library(tidyverse)
 library(DescTools)
@@ -81,6 +82,81 @@ outlier_test <- future_map_dfr(1:100,
 # Close the initialised R workers since we don't need them any more
 plan(sequential)
 
+#################################################################
+sampleno <- sample(outlier_test$iteration, 5)
+sample5 <- outlier_test %>%
+  filter(iteration == 73 | 
+           iteration == 2) 
+
+glimpse(sample5)
+
+sample5
+
+glimpse(AIHW_GroupD1)
+desnityplt2 <- AIHW_GroupD1 %>%
+  ggplot(aes(x = Observed)) +
+  geom_density()
+
+densityplt1
+
+data <- data.frame(
+  distribution$observed,
+  AIHW_GroupD1$Observed[10:109]
+)
+
+data
+
+data1 <- data %>%
+  rename(observed_sample = distribution.observed,
+         observed_AIHW = AIHW_GroupD1.Observed.10.109.)
+
+data2 <- gather(
+  data1
+)
+
+
+
+data3 <- data2 %>%
+  mutate(key =
+           case_when(key == "observed_AIHW" ~ "Observed Counts in AIHW Dataset",
+                     key == "observed_sample" ~ "Observed Counts in Random Sample") 
+                   
+  ) %>%
+  rename(Dataset = key)
+ 
+
+ggplot(data3, aes(
+  x = value, color = Dataset
+)) +
+  geom_density() + 
+  labs(
+    y = "Density",
+    x = "Observed Number of Counts",
+    title = "Density Plot of Observed Counts in AIHW Dataset vs Randomly Generated Sample"
+  ) +
+  geom_vline(xintercept = median(data3$value)) + 
+  annotate("text", x=12, y=0.025, label="Median", angle=90)
+  
+
+
+
+
+
+ggplot(data3, aes(
+  y = value, color = Dataset
+)) +
+  geom_boxplot() +
+  labs(
+    y = "Observed Number of Counts",
+    title = "Boxplot of Observed Counts in AIHW Dataset vs Randomly Generated Sample"
+  ) +
+  theme(axis.text.x = element_blank(),
+        axis.line.x = element_blank())
+  
+#################################################################################
+
+
+  
 confusion_matrix_iter2 <- outlier_test %>%
   group_by(iteration) %>%
   summarise(
