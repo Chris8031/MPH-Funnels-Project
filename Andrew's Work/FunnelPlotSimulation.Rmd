@@ -1,0 +1,480 @@
+---
+title: "Funnel Plot Simulations: Full Example"
+output: html_document
+date: "2022-09-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data Generation
+
+The simplest approach to generating data with outliers that is equally dispersed for both the proportion and standardised-ratio data types is to use transformations of standard-normal variate.
+
+First, note that a normally-distributed variate with known distributional parameters (mean and SD) can be mapped to any other distribution using the CDF and the Quantile function of the respective distributions. Denoting $F_\phi(x)$ as the CDF of the standard-normal distribution and $F^{-1}(x)$ as the quantile function of the desired distribution, this is represented as:
+
+$$
+p^* \sim N(0, 1) \\
+p = F^{-1}(F_\phi(p^*))
+$$
+
+Where the CDF function $F(p^*)$ maps the variate to a uniform $U(0,1)$ variate, and the quantile function of the desired distribution $F^{-1}(x)$ transforms that uniform variate to the desired outcome scale.
+
+For "in-control" hospitals, their base normal variate will be distributed $N(0,1)$ (i.e., mean=0, SD=1). To set the extent to which the outlying hospitals differ from the in-control hospitals, their mean is set to the number of desired standard deviation differences. For example,$N(3.5,0.1)$ implies that the outlying hospitals are 3.5 SD's above/below the mean of the in-control hospitals (as their SD is 1), with little variance.
+
+In R if we define the in-control ratio for proportion data to be 0.5, and to be 1 for standardised-ratio data, this process looks like:
+
+```{r, message=FALSE,results=FALSE}
+library(tidyverse)
+set.seed(2020)
+
+denominator <- sample(1:400, size = 100)
+
+pr_incontrol <- 0.5
+
+# Generate base normal variates for the probability of in-control and outlying observations
+p_star_incontrol <- rnorm(90, mean = 0, sd = 1)
+p_star_outlier <- rnorm(10, mean = 3.5, sd = 0.1)
+
+# Apply the Normal CDF function with in-control distribution parameters
+# to transform to Uniform(0, 1) scale
+p_uniform_incontrol <- pnorm(p_star_incontrol, mean = 0, sd = 1)
+p_uniform_outlier <- pnorm(p_star_outlier, mean = 0, sd = 1)
+
+
+### Proportion Data - 5 negative & 5 positive outliers
+pr_numerator_incontrol <- qbinom(p_uniform_incontrol, size = head(denominator, 90), prob = pr_incontrol)
+denominator_outlier <- tail(denominator, 10)
+pr_numerator_outlier <- c(
+  qbinom(head(p_uniform_outlier, 5),
+         size = head(denominator_outlier, 5),
+         prob = pr_incontrol),
+  qbinom(1-tail(p_uniform_outlier, 5),
+         size = tail(denominator_outlier, 5),
+         prob = pr_incontrol)
+)
+
+### Standardised-Ratio Data
+sr_numerator_incontrol <- qpois(p_uniform_incontrol, lambda = head(denominator, 90))
+sr_numerator_outlier <- c(
+  qpois(head(p_uniform_outlier, 5),
+         lambda = head(denominator_outlier, 5)),
+  qpois(1-tail(p_uniform_outlier, 5),
+         lambda = tail(denominator_outlier, 5))
+)
+
+data <- data.frame(
+  d = denominator,
+  c = c(sr_numerator_incontrol, sr_numerator_outlier),
+  n = c(pr_numerator_incontrol, pr_numerator_outlier),
+  outlier = factor(c(rep("In-control",90), rep("Outlier",10)))
+)
+```
+
+By plotting these data, we can see that they are identically dispersed even though they are on different scales:
+
+```{r}
+library(ggplot2)
+
+data %>%
+  mutate(pr = n/d, sr = c/d) %>%
+  rename(Denominator = d) %>%
+  pivot_longer(c(pr,sr), names_to = "Type", values_to = "Ratio") %>%
+  mutate(Type = factor(Type, levels=c("pr", "sr"), labels = c("Proportion", "Standardised-Ratio"))) %>%
+  ggplot(., aes(x=Denominator, y=Ratio, colour = outlier)) +
+    geom_point() + 
+    scale_color_manual(values=c("black","steelblue")) + 
+    theme_bw() +
+    theme(legend.position = "bottom") +
+    facet_wrap(~Type, ncol=2, nrow=1, scales="free")
+```
+
+Through this data-generation approach we can easily quantify and control the extent to which observations are outlying, and ensures that the method of data-generation is not impacting performance differences of the adjustments between data types.
+
+# Simulation
+
+## Method Specification
+
+First, we need a series of functions to calculate funnel control limits under each of the methods/adjustments being assessed:
+
+### Unadjusted
+
+```{r}
+unadjusted_limits <- function(data) {
+  data %>%
+    mutate(
+      target_pr = sum(n) / sum(d),
+      target_sr = 1,
+      trans_target_pr = asin(sqrt(target_pr)),
+      trans_target_sr = 1,
+      y_pr = n / d,
+      y_sr = c / d,
+      trans_y_pr = asin(sqrt(y_pr)),
+      trans_y_sr = sqrt(y_sr),
+      y_se = 1 / (2*sqrt(d)),
+      unadj_ll_pr = sin(trans_target_pr + qnorm(0.001) * y_se)^2,
+      unadj_ul_pr = sin(trans_target_pr + qnorm(0.999) * y_se)^2,
+      unadj_ll_sr = (1 + qnorm(0.001) * y_se)^2,
+      unadj_ul_sr = (1 + qnorm(0.999) * y_se)^2
+    )
+}
+
+```
+
+### Laney's Correction
+
+```{r}
+laney_limits <- function(data) {
+  data %>%
+    mutate(laney_sd_pr = sqrt((target_pr * (1 - target_pr))/d),
+           laney_sd_sr = sqrt(1 / d),
+           laney_z_pr = (y_pr - target_pr) / laney_sd_pr,
+           laney_z_sr = (y_sr - target_sr) / laney_sd_sr,
+           laney_sdz_pr = sd(DescTools::Winsorize(laney_z_pr, probs = c(0.1, 0.9))),
+           laney_sdz_sr = sd(DescTools::Winsorize(laney_z_sr, probs = c(0.1, 0.9))),
+           laney_ul_pr = target_pr + qnorm(0.999) * laney_sd_pr * laney_sdz_pr,
+           laney_ll_pr = target_pr + qnorm(0.001) * laney_sd_pr * laney_sdz_pr,
+           laney_ul_sr = target_sr + qnorm(0.999) * laney_sd_sr * laney_sdz_sr,
+           laney_ll_sr = target_sr + qnorm(0.001) * laney_sd_sr * laney_sdz_sr)
+}
+```
+
+### Vidmar's Correction
+
+```{r}
+vidmar_limits <- function(data) {
+  tr_data <- data %>%
+    mutate(sqrt_n = sqrt(n),
+           sqrt_dmn = sqrt(d - n),
+           sqrt_c = sqrt(c),
+           sqrt_dmc = sqrt(abs(d - c)))
+
+  N = nrow(data)
+
+  lm_pr = lm(sqrt_n ~ 0 + sqrt_dmn, tr_data)
+  lm_sr = lm(sqrt_c ~ 0 + sqrt_dmc, tr_data)
+
+  b_pr = lm_pr$coefficients["sqrt_dmn"]
+  b_sr = lm_sr$coefficients["sqrt_dmc"]
+
+  vid_target_pr = b_pr^2 / (1 + b_pr^2)
+  vid_target_sr = b_sr^2 / (1 + b_sr^2)
+
+  mse_pr = mean(DescTools::Winsorize(lm_pr$residuals, probs = c(0.1, 0.9))^2)
+  mse_sr = mean(DescTools::Winsorize(lm_sr$residuals, probs = c(0.1, 0.9))^2)
+
+  ssq_pr = sum(data$d - data$n)
+
+  ssq_sr = sum(data$d - data$c)
+
+  lims = data %>%
+    mutate(
+      vid_y_se_pr = qt(0.95, N-1) * sqrt(mse_pr * (1 + (d - n) / ssq_pr)),
+      vid_y_se_sr = qt(0.95, N-1) * sqrt(mse_sr * (1 + (d - c) / ssq_sr)),
+      vid_ul_pr = (sqrt(d * vid_target_pr) + vid_y_se_pr)^2 / d,
+      vid_ll_pr_tmp = (sqrt(d * vid_target_pr) - vid_y_se_pr),
+      vid_ll_pr = sign(vid_ll_pr_tmp) * ((vid_ll_pr_tmp)^2 / d),
+      vid_ul_sr = (sqrt(d * vid_target_sr) + vid_y_se_sr)^2 / d,
+      vid_ll_sr_tmp = (sqrt(d * vid_target_sr) - vid_y_se_sr),
+      vid_ll_sr = sign(vid_ll_sr_tmp) * ((vid_ll_sr_tmp)^2 / d)
+      ) %>%
+  select(-c(vid_ll_pr_tmp, vid_ll_sr_tmp, vid_ul_sr, vid_ll_sr))
+}
+```
+
+### Additive & Multiplicative Adjustment
+
+```{r}
+mult_add_adj_limits <- function(data) {
+  N <- nrow(data)
+  tr_data <- data %>%
+    mutate(z_pr = (trans_y_pr - trans_target_pr) / y_se,
+           z_sr = (trans_y_sr - trans_target_sr) / y_se,
+           z_wins_pr = DescTools::Winsorize(z_pr, probs=c(0.1, 0.9)),
+           z_wins_sr = DescTools::Winsorize(z_sr, probs=c(0.1, 0.9)))
+
+  phi_pr <- sum(tr_data$z_wins_pr^2) / N
+  phi_sr <- sum(tr_data$z_wins_sr^2) / N
+  w <- 1 / ((tr_data$y_se)^2)
+  w_sum <- sum(w)
+  w_sq_sum <- sum(w^2)
+  tau_pr = (N * phi_pr - (N - 1)) / (w_sum - w_sq_sum / w_sum)
+  tau_sr = (N * phi_sr - (N - 1)) / (w_sum - w_sq_sum / w_sum)
+
+  data %>%
+    mutate(mult_ul_pr = sin(trans_target_pr + qnorm(0.999) * sqrt(phi_pr * y_se^2))^2,
+           mult_ll_pr = sin(trans_target_pr + qnorm(0.001) * sqrt(phi_pr * y_se^2))^2,
+           mult_ul_sr = (trans_target_sr + qnorm(0.999) * sqrt(phi_sr * y_se^2))^2,
+           mult_ll_sr = (trans_target_sr + qnorm(0.001) * sqrt(phi_sr * y_se^2))^2,
+           add_ul_pr = sin(trans_target_pr + qnorm(0.999) * sqrt(tau_pr + y_se^2))^2,
+           add_ll_pr = sin(trans_target_pr + qnorm(0.001) * sqrt(tau_pr + y_se^2))^2,
+           add_ul_sr = (trans_target_sr + qnorm(0.999) * sqrt(tau_sr + y_se^2))^2,
+           add_ll_sr = (trans_target_sr + qnorm(0.001) * sqrt(tau_sr + y_se^2))^2)
+}
+```
+
+## Helper Functions
+
+### Outlier Detection
+
+Next, a helper function that will apply all of the above method functions to a generated dataset, and test for outliers under each method.
+
+```{r}
+calc_limits_outliers <- function(data) {
+  unadj_limits <- unadjusted_limits(data)
+  add_laney_limits <- laney_limits(unadj_limits)
+  add_vidmar_limits <- vidmar_limits(add_laney_limits)
+  all_limits <- mult_add_adj_limits(add_vidmar_limits)
+
+  all_limits %>%
+    mutate(
+      unadj_outlier_pr = (y_pr < unadj_ll_pr) | (y_pr > unadj_ul_pr),
+      laney_outlier_pr = (y_pr < laney_ll_pr) | (y_pr > laney_ul_pr),
+      vidmar_outlier_pr = (y_pr < vid_ll_pr) | (y_pr > vid_ul_pr),
+      mult_outlier_pr = (y_pr < mult_ll_pr) | (y_pr > mult_ul_pr),
+      add_outlier_pr = (y_pr < add_ll_pr) | (y_pr > add_ul_pr),
+
+      unadj_outlier_sr = (y_sr < unadj_ll_sr) | (y_sr > unadj_ul_sr),
+      laney_outlier_sr = (y_sr < laney_ll_sr) | (y_sr > laney_ul_sr),
+      mult_outlier_sr = (y_sr < mult_ll_sr) | (y_sr > mult_ul_sr),
+      add_outlier_sr = (y_sr < add_ll_sr) | (y_sr > add_ul_sr)
+    )
+}
+```
+
+### Data-Generation and Results-Summary (Per Iteration)
+
+Finally, the main entry point to the simulation. This function takes an iteration number and series of simulation parameters, generates the dataset with outliers, applies the various method functions, and aggregates the results (to avoid the full simulation returning millions of rows):
+
+```{r, warning=FALSE}
+simulation_fun <- function(iteration, N = 100, denom_range = c(1,50), pr_incontrol = 0.5,
+                           outlier_prop = 0.1, outlier_sd_diff = 3.5, summarise = TRUE) {
+  N_outlier = floor(N * outlier_prop)
+  N_positive_outlier = floor(N_outlier) / 2
+  N_negative_outlier = N_outlier - N_positive_outlier
+  N_incontrol = N - N_outlier
+
+  denominator <- sample(denom_range[1]:denom_range[2], size = N, replace = TRUE)
+
+  # Generate base normal variates for the probability of in-control and outlying observations
+  p_star_incontrol <- rnorm(N_incontrol, mean = 0, sd = 1)
+  p_star_outlier <- rnorm(N_outlier, mean = outlier_sd_diff, sd = 0.1)
+
+  # Apply the Normal CDF function with in-control distribution parameters
+  # to transform to Uniform(0, 1) scale
+  p_uniform_incontrol <- pnorm(p_star_incontrol, mean = 0, sd = 1)
+  p_uniform_outlier <- pnorm(p_star_outlier, mean = 0, sd = 1)
+
+  ### Proportion Data
+  pr_numerator_incontrol <- qbinom(p_uniform_incontrol,
+                                   size = head(denominator, N_incontrol),
+                                   prob = pr_incontrol)
+  denominator_outlier <- tail(denominator, N_outlier)
+  pr_numerator_outlier <- c(
+    qbinom(head(p_uniform_outlier, N_positive_outlier),
+           size = head(denominator_outlier, N_positive_outlier),
+           prob = pr_incontrol),
+    qbinom(1-tail(p_uniform_outlier, N_negative_outlier),
+           size = tail(denominator_outlier, N_negative_outlier),
+           prob = pr_incontrol)
+  )
+
+  ### Standardised-Ratio Data
+  sr_numerator_incontrol <- qpois(p_uniform_incontrol, lambda = head(denominator, N_incontrol))
+  denominator_outlier <- tail(denominator, N_outlier)
+  sr_numerator_outlier <- c(
+    qpois(head(p_uniform_outlier, N_positive_outlier),
+           lambda = head(denominator_outlier, N_positive_outlier)),
+    qpois(1-tail(p_uniform_outlier, N_negative_outlier),
+           lambda = tail(denominator_outlier, N_negative_outlier))
+  )
+
+  data <- data.frame(
+    iteration = iteration,
+    N = N,
+    denom_range = paste(denom_range, collapse = "-"),
+    outlier_sd_diff = outlier_sd_diff,
+    d = denominator,
+    c = c(sr_numerator_incontrol, sr_numerator_outlier),
+    n = c(pr_numerator_incontrol, pr_numerator_outlier),
+    true_outlier = c(rep(FALSE,N_incontrol), rep(TRUE,N_outlier))
+  )
+
+  limits_and_outliers <- calc_limits_outliers(data)
+
+  if (summarise) {
+    limits_and_outliers %>%
+      select(iteration, N, denom_range, outlier_sd_diff, true_outlier, matches("(outlier_pr|outlier_sr)")) %>%
+      pivot_longer(matches("(outlier_pr|outlier_sr)"), names_to = "outlier_type",
+                   values_to = "outlier_value") %>%
+      group_by(iteration, N, denom_range, outlier_sd_diff, outlier_type) %>%
+      summarise(true_positives = sum(true_outlier == TRUE & outlier_value == TRUE),
+                false_positives = sum(true_outlier == FALSE & outlier_value == TRUE),
+                true_negatives = sum(true_outlier == FALSE & outlier_value == FALSE),
+                false_negatives = sum(true_outlier == TRUE & outlier_value == FALSE),
+                .groups = "drop") %>%
+      mutate(sensitivity = true_positives / (true_positives + false_negatives),
+             specificity = true_negatives / (true_negatives + false_positives)) %>%
+      separate(outlier_type, into = c("Adjustment", "dummy", "DataType"), sep = "_") %>%
+      select(-dummy) %>%
+      group_by(N, denom_range, outlier_sd_diff, DataType, Adjustment) %>%
+      summarise(across(true_positives:specificity, mean),
+                .groups = "drop")
+  } else {
+    limits_and_outliers
+  }
+}
+```
+
+We can then "sanity-check" our data-generation and funnel limit contruction by requesting (and plotting) 1 iteration of the simulation with the (arbitrary) default parameters of 100 hospitals, with denominators ranging from 1-50, and outlying hospitals differing by 3.5 SD's. Note that the non-monotonic limits for the proportion data at small denominators is a known consequence of the arcsine transformation.
+
+```{r}
+iter1 = simulation_fun(iteration = 1, summarise = FALSE) %>%
+  select(d,c, n, true_outlier, matches("ll_|ul_")) %>%
+  pivot_longer(matches("ll_|ul_"), names_to="type", values_to = "value") %>%
+  separate(type, into=c("adj", "limit", "data_type"), sep="_") %>%
+  mutate(adj = factor(adj, levels=c("unadj","add","mult","laney","vid"),
+                             labels=c("Unadjusted","Additive","Multiplicative",
+                                      "Laney's","Vidmar's")))
+iter1 %>%
+  filter(data_type == "pr") %>%
+ggplot(., aes(x=d,y=n/d)) +
+  geom_point(aes(colour=true_outlier, group=1)) +
+  geom_line(aes(y = value, group=limit)) + 
+  theme_bw() + 
+  labs(x = "Denominator", y="Proportion", colour="True Outlier") +
+  facet_wrap(~adj, scales="free")
+
+iter1 %>%
+  filter(data_type == "sr") %>%
+ggplot(., aes(x=d,y=c/d)) +
+  geom_point(aes(colour=true_outlier, group=1)) +
+  geom_line(aes(y = value, group=limit)) + 
+  theme_bw() + 
+  labs(x = "Denominator", y="Ratio", colour="True Outlier") +
+  facet_wrap(~adj, scales="free")
+```
+
+## Conduct Simulation
+
+To conduct the simulation we first generate a dataframe of each combination of simulation parameters to be tested:
+
+```{r}
+sim_combinations <- expand.grid(
+  iteration = 1:1000,
+  N = c(50, 100, 200),
+  denom_range = list(c(1,50), c(51,100), c(101, 200), c(201,500), c(501, 1000), 
+                     c(1001, 5000), c(5001,10000)),
+  pr_incontrol = 0.5,
+  outlier_prop = 0.1,
+  outlier_sd_diff = seq(from=2, to=4, by=0.5),
+  summarise = TRUE
+)
+```
+
+Then, using the `future_pmap_dfr` function, each row of the dataframe is passed (in parallel) to entry point function specified above, and the results from each simulation are stacked row-wise to return a single dataframe:
+
+```{r, eval=FALSE, warning=FALSE}
+library(furrr)
+
+plan(multisession)
+confusion_matrix_by_iter <- future_pmap_dfr(sim_combinations, simulation_fun,
+                                            .options = furrr_options(seed = 2022))
+plan(sequential)
+
+save("confusion_matrix_by_iter", file = "ConfusionMatrixByIter.RData")
+```
+
+```{r, echo=FALSE}
+load("ConfusionMatrixByIter.RData")
+```
+
+### Aggregate Results
+
+The above simulation returned the confusion matrix (true/false positives and sensitivity/specificity) at each iteration of the simulation, for plotting and interpretation we need to aggregrate these across all iterations:
+
+```{r, eval=TRUE}
+confusion_matrix <- confusion_matrix_by_iter %>%
+  group_by(N, denom_range, outlier_sd_diff, DataType, Adjustment) %>%
+  summarise(across(true_positives:specificity, mean, na.rm=TRUE),
+            .groups = "drop")  %>%
+  mutate(denom_range = factor(denom_range, levels=map_chr(unique(sim_combinations$denom_range),paste,collapse="-")),
+         Adjustment = factor(Adjustment, levels=c("unadj","add","mult","laney","vidmar"),
+                             labels=c("Unadjusted","Additive","Multiplicative",
+                                      "Laney's","Vidmar's")),
+         outlier_sd_diff = factor(outlier_sd_diff, levels=seq(from=2, to=4, by=0.5),
+                                  labels=paste0(seq(from=2, to=4, by=0.5), "SD")))
+save("confusion_matrix", file = "ConfusionMatrix.RData")
+```
+
+## Plot Results
+
+Finally, the sensitivity and specificity of the methods can be plotted across the various combinations of the simulation parameters:
+
+### Helper Functions
+
+```{r, eval=TRUE}
+confusion_plotting = confusion_matrix %>%
+  pivot_longer(c(sensitivity, specificity), names_to = "measure", values_to = "value")
+
+make_plot <- function(conf_data, data_type, N_in, type) {
+  data_name <- ifelse(data_type == "pr", "Proportion", "Standardised-Ratio")
+  conf_data %>%
+    filter(DataType == data_type & N == N_in & measure == tolower(type)) %>%
+    ggplot(., aes(x=denom_range, y = value, group = Adjustment, colour = Adjustment)) +
+    geom_point() +
+    geom_line() +
+    theme_bw() +
+    facet_wrap(facets=vars(outlier_sd_diff), ncol=1, scales="free") +
+    labs(y = type, x = "Denominator Range",
+         title = paste0(type,": N = ", N_in, ", ", data_name)) +
+    theme(legend.position = 'bottom')
+}
+```
+
+### Proportions: Sensitivity & Specificity Plots
+
+#### N = 50
+
+```{r, fig.height=9, echo = FALSE, eval=TRUE}
+make_plot(confusion_plotting, "pr", 50, "Sensitivity")
+make_plot(confusion_plotting, "pr", 50, "Specificity")
+```
+
+#### N = 100
+
+```{r, fig.height=9, echo = FALSE, eval=TRUE}
+make_plot(confusion_plotting, "pr", 100, "Sensitivity")
+make_plot(confusion_plotting, "pr", 100, "Specificity")
+```
+
+#### N = 200
+
+```{r, fig.height=9, echo = FALSE, eval=TRUE}
+make_plot(confusion_plotting, "pr", 200, "Sensitivity")
+make_plot(confusion_plotting, "pr", 200, "Specificity")
+```
+
+### Standardised-Ration: Sensitivity & Specificity Plots
+
+#### N = 50
+
+```{r, fig.height=9, echo = FALSE, eval=TRUE}
+make_plot(confusion_plotting, "sr", 50, "Sensitivity")
+make_plot(confusion_plotting, "sr", 50, "Specificity")
+```
+
+#### N = 100
+
+```{r, fig.height=9, echo = FALSE, eval=TRUE}
+make_plot(confusion_plotting, "sr", 100, "Sensitivity")
+make_plot(confusion_plotting, "sr", 100, "Specificity")
+```
+
+#### N = 200
+
+```{r, fig.height=9, echo = FALSE, eval=TRUE}
+make_plot(confusion_plotting, "sr", 200, "Sensitivity")
+make_plot(confusion_plotting, "sr", 200, "Specificity")
+```

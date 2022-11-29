@@ -72,7 +72,7 @@ funplot <- ggplot(plot_data1, aes(x=denominators, y=numerators/denominators,
   geom_line(aes(y=ul99)) +
   geom_line(aes(y=ll95)) +
   geom_line(aes(y=ul95)) +
-  theme_dark()
+  theme_bw()
 funplot
 
 

@@ -10,7 +10,7 @@ cl95 <- qnorm(0.975)
 set.seed(2)
 # 80 as this is roughly the number of hospitals
 # under WA Health
-denominator <- sample(1:20, size = 80, replace = TRUE)
+denominator <- sample(1:100, size = 80, replace = TRUE)
 denominator
 quantiled <- Quantile(denominator)
 quantiled[3]
@@ -51,7 +51,8 @@ funplot_unadjusted <- ggplot(df4, aes(x=denominator,
   geom_line(aes(y=ll99)) +
   geom_line(aes(y=up99)) +
   geom_line(aes(y=ll95)) +
-  geom_line(aes(y=up95)) 
+  geom_line(aes(y=up95)) +
+  theme_bw()
 funplot_unadjusted
 # Find outliers
 outliers <- df4 %>%
