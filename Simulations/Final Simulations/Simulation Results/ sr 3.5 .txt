@@ -1,0 +1,27 @@
+% latex table generated in R 4.2.0 by xtable 1.8-4 package
+% Fri Nov  4 07:53:14 2022
+\begin{table*}[htbp]
+\centering
+\caption{Simulation Results for Standardised-Ratio Indicators where the Outlier Standard Difference is 3.5 SD and denominator range is between 1-50.} 
+\label{sr 3.5}
+\begin{tabularx}{\linewidth}{|l|X|X|l|l|l|l|l|}
+  \hline
+N & Denominator Range & Adjustment & Sensitivity & Specificity & PPV & NPV & MCC \\ 
+  \hline
+50 & 1-50 & Unadjusted & 0.965 & 0.986 & 0.902 & 0.996 & 0.923 \\ 
+  50 & 1-50 & Additive & 0.788 & 0.987 & 0.864 & 0.977 & 0.797 \\ 
+  50 & 1-50 & Multiplicative & 0.827 & 0.987 & 0.869 & 0.981 & 0.827 \\ 
+  50 & 1-50 & Laney's & 0.708 & 0.996 & 0.959 & 0.969 & 0.797 \\ 
+   \hline
+100 & 1-50 & Unadjusted & 0.952 & 0.986 & 0.889 & 0.995 & 0.909 \\ 
+  100 & 1-50 & Additive & 0.818 & 0.986 & 0.861 & 0.980 & 0.817 \\ 
+  100 & 1-50 & Multiplicative & 0.844 & 0.986 & 0.869 & 0.983 & 0.837 \\ 
+  100 & 1-50 & Laney's & 0.758 & 0.997 & 0.967 & 0.974 & 0.838 \\ 
+   \hline
+200 & 1-50 & Unadjusted & 0.958 & 0.986 & 0.885 & 0.995 & 0.911 \\ 
+  200 & 1-50 & Additive & 0.832 & 0.986 & 0.864 & 0.982 & 0.829 \\ 
+  200 & 1-50 & Multiplicative & 0.845 & 0.986 & 0.868 & 0.983 & 0.839 \\ 
+  200 & 1-50 & Laney's & 0.750 & 0.997 & 0.964 & 0.973 & 0.833 \\ 
+   \hline
+\end{tabularx}
+\end{table*}

@@ -1,0 +1,30 @@
+% latex table generated in R 4.2.0 by xtable 1.8-4 package
+% Fri Nov  4 07:52:57 2022
+\begin{table*}[htbp]
+\centering
+\caption{Simulation Results for Proportion Indicators where the Outlier Standard Difference is 4 SD and denominator range is between 1-50.} 
+\label{pr 4}
+\begin{tabularx}{\linewidth}{|l|X|X|l|l|l|l|l|}
+  \hline
+N & Denominator Range & Adjustment & Sensitivity & Specificity & PPV & NPV & MCC \\ 
+  \hline
+50 & 1-50 & Unadjusted & 1.000 & 0.955 & 0.742 & 1.000 & 0.839 \\ 
+  50 & 1-50 & Additive & 0.931 & 0.956 & 0.721 & 0.992 & 0.792 \\ 
+  50 & 1-50 & Multiplicative & 0.979 & 0.956 & 0.736 & 0.998 & 0.825 \\ 
+  50 & 1-50 & Laney's & 0.800 & 0.998 & 0.977 & 0.979 & 0.867 \\ 
+  50 & 1-50 & Vidmar's & 0.748 & 0.996 & 0.958 & 0.973 & 0.824 \\ 
+   \hline
+100 & 1-50 & Unadjusted & 1.000 & 0.959 & 0.741 & 1.000 & 0.842 \\ 
+  100 & 1-50 & Additive & 0.981 & 0.959 & 0.740 & 0.998 & 0.831 \\ 
+  100 & 1-50 & Multiplicative & 0.997 & 0.959 & 0.744 & 1.000 & 0.842 \\ 
+  100 & 1-50 & Laney's & 0.821 & 0.998 & 0.981 & 0.981 & 0.885 \\ 
+  100 & 1-50 & Vidmar's & 0.723 & 0.996 & 0.955 & 0.970 & 0.810 \\ 
+   \hline
+200 & 1-50 & Unadjusted & 1.000 & 0.957 & 0.729 & 1.000 & 0.835 \\ 
+  200 & 1-50 & Additive & 0.995 & 0.958 & 0.731 & 0.999 & 0.834 \\ 
+  200 & 1-50 & Multiplicative & 1.000 & 0.958 & 0.732 & 1.000 & 0.837 \\ 
+  200 & 1-50 & Laney's & 0.823 & 0.998 & 0.984 & 0.981 & 0.889 \\ 
+  200 & 1-50 & Vidmar's & 0.735 & 0.996 & 0.952 & 0.971 & 0.819 \\ 
+   \hline
+\end{tabularx}
+\end{table*}

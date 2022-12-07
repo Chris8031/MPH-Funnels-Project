@@ -1,0 +1,55 @@
+% latex table generated in R 4.2.0 by xtable 1.8-4 package
+% Tue Oct 11 12:44:35 2022
+\begin{table*}[htbp]
+\centering
+\caption{Simulation Results for Standardised-Ratio Indicators where 
+               the Outlier Standard Difference is 3.5SD and N = 200} 
+\label{sr 200}
+\begin{tabular*}{0.9\linewidth}{|l|l|l|l|l|l|l|}
+  \hline
+Denominator Range & Adjustment & Sensitivity & Specificity & PPV & NPV & MCC \\ 
+  \hline
+1-50 & Unadjusted & 0.98 & 0.97 & 0.81 & 1.00 & 0.88 \\ 
+  1-50 & Additive & 0.84 & 0.97 & 0.78 & 0.98 & 0.78 \\ 
+  1-50 & Multiplicative & 0.87 & 0.97 & 0.79 & 0.99 & 0.81 \\ 
+  1-50 & Laney's & 0.72 & 1.00 & 0.96 & 0.97 & 0.81 \\ 
+  1-50 & Vidmar's & 0.55 & 1.00 & 0.92 & 0.95 & 0.68 \\ 
+   \hline
+51-100 & Unadjusted & 1.00 & 1.00 & 0.98 & 1.00 & 0.99 \\ 
+  51-100 & Additive & 0.92 & 1.00 & 0.97 & 0.99 & 0.94 \\ 
+  51-100 & Multiplicative & 0.94 & 1.00 & 0.97 & 0.99 & 0.94 \\ 
+  51-100 & Laney's & 0.89 & 1.00 & 0.97 & 0.99 & 0.92 \\ 
+  51-100 & Vidmar's & 0.72 & 1.00 & 0.95 & 0.97 & 0.80 \\ 
+   \hline
+101-200 & Unadjusted & 1.00 & 1.00 & 0.98 & 1.00 & 0.99 \\ 
+  101-200 & Additive & 0.93 & 1.00 & 0.97 & 0.99 & 0.94 \\ 
+  101-200 & Multiplicative & 0.94 & 1.00 & 0.97 & 0.99 & 0.94 \\ 
+  101-200 & Laney's & 0.92 & 1.00 & 0.96 & 0.99 & 0.93 \\ 
+  101-200 & Vidmar's & 0.75 & 1.00 & 0.94 & 0.97 & 0.82 \\ 
+   \hline
+201-500 & Unadjusted & 1.00 & 1.00 & 0.98 & 1.00 & 0.99 \\ 
+  201-500 & Additive & 0.93 & 1.00 & 0.96 & 0.99 & 0.94 \\ 
+  201-500 & Multiplicative & 0.94 & 1.00 & 0.96 & 0.99 & 0.94 \\ 
+  201-500 & Laney's & 0.93 & 1.00 & 0.96 & 0.99 & 0.94 \\ 
+  201-500 & Vidmar's & 0.75 & 1.00 & 0.92 & 0.97 & 0.81 \\ 
+   \hline
+501-1000 & Unadjusted & 1.00 & 1.00 & 0.99 & 1.00 & 0.99 \\ 
+  501-1000 & Additive & 0.93 & 1.00 & 0.97 & 0.99 & 0.94 \\ 
+  501-1000 & Multiplicative & 0.94 & 1.00 & 0.96 & 0.99 & 0.94 \\ 
+  501-1000 & Laney's & 0.93 & 1.00 & 0.96 & 0.99 & 0.94 \\ 
+  501-1000 & Vidmar's & 0.76 & 1.00 & 0.92 & 0.98 & 0.82 \\ 
+   \hline
+1001-5000 & Unadjusted & 1.00 & 1.00 & 0.99 & 1.00 & 0.99 \\ 
+  1001-5000 & Additive & 0.93 & 1.00 & 0.97 & 0.99 & 0.94 \\ 
+  1001-5000 & Multiplicative & 0.94 & 1.00 & 0.96 & 0.99 & 0.95 \\ 
+  1001-5000 & Laney's & 0.94 & 1.00 & 0.96 & 0.99 & 0.94 \\ 
+  1001-5000 & Vidmar's & 0.76 & 1.00 & 0.91 & 0.98 & 0.81 \\ 
+   \hline
+5001-10000 & Unadjusted & 1.00 & 1.00 & 0.99 & 1.00 & 0.99 \\ 
+  5001-10000 & Additive & 0.93 & 1.00 & 0.97 & 0.99 & 0.94 \\ 
+  5001-10000 & Multiplicative & 0.94 & 1.00 & 0.96 & 0.99 & 0.94 \\ 
+  5001-10000 & Laney's & 0.94 & 1.00 & 0.96 & 0.99 & 0.94 \\ 
+  5001-10000 & Vidmar's & 0.77 & 1.00 & 0.91 & 0.98 & 0.81 \\ 
+   \hline
+\end{tabular*}
+\end{table*}

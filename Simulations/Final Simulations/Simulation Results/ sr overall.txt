@@ -1,0 +1,32 @@
+% latex table generated in R 4.2.0 by xtable 1.8-4 package
+% Fri Nov  4 07:53:30 2022
+\begin{table*}[htbp]
+\centering
+\caption{The best performing model according to the Matthews Correlation Coefficient for Standardised-Ratio indicators, grouped by outlier standard deviation difference and sample size (N), where the denominator range is between 1-50.} 
+\label{sr _overall}
+\begin{tabularx}{\linewidth}{|X|l|X|X|l|l|l|}
+  \hline
+Outlier Standard Deviation & N & Denominator Range & Adjustment & Sensitivity & Specificity & MCC \\ 
+  \hline
+2SD & 50 & 1-50 & Additive & 0.055 & 0.984 & 0.063 \\ 
+  2SD & 100 & 1-50 & Additive & 0.035 & 0.986 & 0.042 \\ 
+  2SD & 200 & 1-50 & Multiplicative & 0.030 & 0.986 & 0.038 \\ 
+   \hline
+2.5SD & 50 & 1-50 & Additive & 0.150 & 0.986 & 0.194 \\ 
+  2.5SD & 100 & 1-50 & Additive & 0.098 & 0.986 & 0.146 \\ 
+  2.5SD & 200 & 1-50 & Additive & 0.075 & 0.987 & 0.122 \\ 
+   \hline
+3SD & 50 & 1-50 & Unadjusted & 0.504 & 0.987 & 0.615 \\ 
+  3SD & 100 & 1-50 & Laney's & 0.457 & 0.997 & 0.604 \\ 
+  3SD & 200 & 1-50 & Laney's & 0.452 & 0.997 & 0.620 \\ 
+   \hline
+3.5SD & 50 & 1-50 & Unadjusted & 0.965 & 0.986 & 0.923 \\ 
+  3.5SD & 100 & 1-50 & Unadjusted & 0.952 & 0.986 & 0.909 \\ 
+  3.5SD & 200 & 1-50 & Unadjusted & 0.958 & 0.986 & 0.911 \\ 
+   \hline
+4SD & 50 & 1-50 & Unadjusted & 1.000 & 0.985 & 0.939 \\ 
+  4SD & 100 & 1-50 & Unadjusted & 1.000 & 0.986 & 0.940 \\ 
+  4SD & 200 & 1-50 & Unadjusted & 1.000 & 0.986 & 0.937 \\ 
+   \hline
+\end{tabularx}
+\end{table*}

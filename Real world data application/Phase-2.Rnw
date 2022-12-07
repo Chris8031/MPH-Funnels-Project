@@ -1,0 +1,110 @@
+\documentclass{article}
+% Preamble
+\begin{document}
+\section{Results}
+suadfhiuasdhfio;ashfkjasdhf
+<<setup, include=FALSE>>=
+### Set the global chunk options
+### See http://yihui.name/knitr/options/#chunk_options
+library(knitr)
+opts_chunk$set(cache=FALSE,
+               echo=FALSE,
+               message=FALSE,
+               warning=FALSE,
+               highlight=FALSE,
+               sanitize=FALSE,
+               tidy=TRUE,
+               fig.env='figure',
+               fig.show='hold',
+               fig.lp='fig:',
+               fig.align='center',
+               fig.pos='htbp',
+               out.width='0.75\\linewidth'
+               )
+@
+
+
+
+<<AIHW-funnel-plot, fig.cap='A test'>>=
+library(tidyverse)
+library(DescTools)
+# set critical values for control limits
+cl99 <- qnorm(.999)
+cl95 <- qnorm(0.975)
+# Import data
+Import_data.fn <- function(datalocation){
+library(readxl)
+data <- read_excel(datalocation)
+return(data)}
+df1 <- Import_data.fn("D:/Github/MPH-Funnels-Project/Real world data application/AIHW Dataset/AIHW_GroupD1.xlsx") %>%
+  mutate(HMSR = Observed/Expected,
+         theta = 1,
+         s_i_squared = 1/Expected,
+         s_i = sqrt(1/Expected),
+         ll99 = theta - cl99*s_i,
+         ul99 = theta + cl99*s_i,
+         # Construct MAM
+           HMSR_transformed = sqrt(Observed/Expected),
+           s_i_transformed = 1/(2*sqrt(Expected)),
+            z_transformed = 2*(sqrt(Observed) - sqrt(Expected)))
+          df2 <- df1 %>%
+          mutate(z_adj = Winsorize(df1$z_transformed, probs = c(0.10, 0.90))) %>%
+          select(-z_transformed) %>%
+          mutate(phi = (sum(z_adj^2))/nrow(df1),
+          overdispersed = if_else((phi > (nrow(df1)-1)/nrow(df1)), TRUE, FALSE),
+         ll99_MAM = theta - cl99*s_i*sqrt(phi),
+         ul99_MAM = theta + cl99*s_i*sqrt(phi), 
+         # Construct AREM
+           s_squared_i = Observed/(Expected^2),
+           w = 1/s_squared_i) %>%
+            filter(w != Inf) 
+          df3 <- df2 %>%
+            mutate(
+           tau_numerator = phi*nrow(df2) - (nrow(df2) - 1),
+           tau_denominator = sum(w) - ((sum(w^2))/sum(w)),
+           tau_squared = tau_numerator/(tau_denominator + .Machine$double.eps), # In case of division by 0
+          ll99_AREM = theta - cl99*sqrt(s_i_squared + tau_squared),
+          ul99_AREM = theta + cl99*sqrt(s_i_squared + tau_squared),
+        # Construct Laney
+          d = sum(Observed)/sum(Expected),
+          laney_z_i = (HMSR - d) / s_i,
+          z_diff = laney_z_i - mean(laney_z_i),
+          N = nrow(df2), 
+          sum_z_diff_squared = sum(z_diff^2),
+          sigma_z_squared = sum_z_diff_squared/ (N - 1),
+          sigma_z = sqrt(abs(sigma_z_squared)),
+          sigma_piz = s_i*sigma_z,
+          ul99_laney = theta + cl99 * sigma_piz,
+          ll99_laney = theta - cl99 * sigma_piz) %>%
+          select(-c(s_squared_i, s_i, ends_with("transformed"), phi, w, starts_with("tau"),
+                    z_adj, d, s_i_squared, starts_with("sigma"), N, z_diff, starts_with("sum"), overdispersed, ID, laney_z_i)) 
+        # Multiply columns by 100 for HMSR
+      df3 %>%
+          mutate(across(.fns = ~ .x * 100)) %>%
+                ggplot(aes(
+                  x=Expected, 
+            y=HMSR)) +
+          geom_point() +
+          geom_line(aes(y=theta)) +
+          geom_line(aes(y=ll99, color = "Unadjusted")) +
+          geom_line(aes(y=ul99, color = "Unadjusted")) +
+          geom_line(aes(y=ll99_MAM, color = "MAM")) +
+          geom_line(aes(y=ul99_MAM, color = "MAM")) +
+          geom_line(aes(y=ll99_AREM, color = "AREM")) +
+          geom_line(aes(y=ul99_AREM, color = "AREM")) +
+          geom_line(aes(y = ul99_laney, color = "Laneys")) +
+          geom_line(aes(y = ll99_laney, color = "Laneys")) +
+          theme_bw() +
+          labs(
+            x = "Expected Number of Deaths",
+            y = "HSMR", 
+            color = "99.7 Control Limits")
+@
+
+
+
+
+
+more text
+
+
