@@ -87,6 +87,7 @@ data %>%
     scale_color_manual(values=c("black","steelblue")) + 
     theme_bw() +
     theme(legend.position = "bottom") +
+  labs(color = "Observation") +
     facet_wrap(~Type, ncol=2, nrow=1, scales="free")
 ```
 

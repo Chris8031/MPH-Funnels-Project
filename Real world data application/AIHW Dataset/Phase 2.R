@@ -57,57 +57,50 @@ df10 <- df9 %>%
 ##############################################################
 # Construct control limits from Laney's model
 df11 <- df10 %>% 
-  mutate(d = sum(Observed)/sum(Expected),
+  mutate(
     laney_sd_sr = sqrt(1/ Expected),
-         laney_z_i = (HMSR - d) / laney_sd_sr,
-    z_diff = laney_z_i - mean(laney_z_i),
-    N = nrow(df10), 
-    sum_z_diff_squared = sum(z_diff^2),
-    sigma_z_squared = sum_z_diff_squared/ (N - 1),
-    sigma_z = sqrt(abs(sigma_z_squared)),
-    sigma_piz = laney_sd_sr*sigma_z,
-        laney_sdz_sr = sd(DescTools::Winsorize(laney_sd_sr, probs = c(0.1, 0.9))),
-        laney_ul_1 = theta + cl99 * laney_sd_sr * laney_sd_sr,
-        laney_ll_1 = theta - cl99 * laney_sd_sr * laney_sd_sr,
-    laney_ul_2 = theta + cl99 * sigma_piz,
-    laney_ll_2 = theta - cl99 * sigma_piz)
+    laney_z_i = (HMSR - theta) / laney_sd_sr,
+    laney_sdz_sr = sd(DescTools::Winsorize(laney_z_i, probs = c(0.1, 0.9))),
+    laney_ul_1 = theta + cl99 * laney_sd_sr * laney_sdz_sr,
+    laney_ll_1 = theta - cl99 * laney_sd_sr * laney_sdz_sr)
         
 
+multiply_by_100 <- function(x){
+  x*100
+}
+
+
+
+library(magrittr)
+
+df12 <- df11 %>%
+  magrittr::extract(, 4:ncol(df11)) %>%
+  apply(MARGIN = 1:2, multiply_by_100) %>%
+  as.data.frame()
 
 
 df11 %>%
-  mutate(
-    HMSR = HMSR*100,
-    theta = theta*100,
-    ll99 = ll99*100,
-    ul99 = ul99*100,
-    ll99_MAM = ll99_MAM*100,
-    ul99_MAM = ul99_MAM*100,
-    ul99_AREM = ul99_AREM*100,
-    ll99_AREM = ll99_AREM*100,
-    laney_ll_2 = laney_ll_2*100,
-    laney_ul_2 = laney_ul_2*100
-  ) %>%
+  extract(1:3) %>%
+  cbind(df12)  %>%
+  glimpse() %>%
   ggplot(aes(
     x=Expected, 
-    y=HMSR,
-    label = ID)) +
+    y=HMSR)) +
   geom_point() +
   geom_line(aes(y=theta)) +
+  geom_line(aes(y = laney_ul_1, color = "Laneys")) +
+  geom_line(aes(y = laney_ll_1, color = "Laneys")) +
   geom_line(aes(y=ll99, color = "Unadjusted")) +
   geom_line(aes(y=ul99, color = "Unadjusted")) +
   geom_line(aes(y=ll99_MAM, color = "MAM")) +
   geom_line(aes(y=ul99_MAM, color = "MAM")) +
   geom_line(aes(y=ll99_AREM, color = "AREM")) +
   geom_line(aes(y=ul99_AREM, color = "AREM")) +
-  geom_line(aes(y = laney_ul_2, color = "Laneys")) +
-  geom_line(aes(y = laney_ll_2, color = "Laneys")) +
   theme_bw() +
   labs(
     x = "Expected Number of Deaths",
     y = "HSMR", 
     color = "99.7 Control Limits")
-
 
 
   

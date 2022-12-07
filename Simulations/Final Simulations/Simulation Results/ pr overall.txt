@@ -1,0 +1,32 @@
+% latex table generated in R 4.2.0 by xtable 1.8-4 package
+% Fri Nov  4 07:53:34 2022
+\begin{table*}[htbp]
+\centering
+\caption{The best performing model according to the Matthews Correlation Coefficient for Proportion indicators, grouped by outlier standard deviation difference and sample size (N), where the denominator range is between 1-50.} 
+\label{pr _overall}
+\begin{tabularx}{\linewidth}{|X|l|X|X|l|l|l|}
+  \hline
+Outlier Standard Deviation & N & Denominator Range & Adjustment & Sensitivity & Specificity & MCC \\ 
+  \hline
+2SD & 50 & 1-50 & Additive & 0.110 & 0.957 & 0.085 \\ 
+  2SD & 100 & 1-50 & Additive & 0.094 & 0.958 & 0.073 \\ 
+  2SD & 200 & 1-50 & Additive & 0.100 & 0.958 & 0.082 \\ 
+   \hline
+2.5SD & 50 & 1-50 & Additive & 0.207 & 0.958 & 0.195 \\ 
+  2.5SD & 100 & 1-50 & Additive & 0.173 & 0.957 & 0.165 \\ 
+  2.5SD & 200 & 1-50 & Additive & 0.148 & 0.959 & 0.143 \\ 
+   \hline
+3SD & 50 & 1-50 & Unadjusted & 0.581 & 0.958 & 0.557 \\ 
+  3SD & 100 & 1-50 & Unadjusted & 0.595 & 0.958 & 0.564 \\ 
+  3SD & 200 & 1-50 & Unadjusted & 0.604 & 0.958 & 0.569 \\ 
+   \hline
+3.5SD & 50 & 1-50 & Unadjusted & 0.986 & 0.957 & 0.834 \\ 
+  3.5SD & 100 & 1-50 & Unadjusted & 0.998 & 0.957 & 0.837 \\ 
+  3.5SD & 200 & 1-50 & Unadjusted & 0.999 & 0.958 & 0.837 \\ 
+   \hline
+4SD & 50 & 1-50 & Laney's & 0.800 & 0.998 & 0.867 \\ 
+  4SD & 100 & 1-50 & Laney's & 0.821 & 0.998 & 0.885 \\ 
+  4SD & 200 & 1-50 & Laney's & 0.823 & 0.998 & 0.889 \\ 
+   \hline
+\end{tabularx}
+\end{table*}
