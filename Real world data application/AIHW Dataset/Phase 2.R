@@ -103,9 +103,14 @@ df11 %>%
     color = "99.7 Control Limits")
 
 
-  
+ggsave("AIHW.png", 
+       path = "D:/Github/MPH-Funnels-Project/Real world data application/AIHW Dataset",
+       width = 20,
+       height = 10,
+       units = "cm")
 
-  
+
+
   
 
 

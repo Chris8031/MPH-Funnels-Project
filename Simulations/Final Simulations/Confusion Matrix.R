@@ -198,9 +198,9 @@ Figures
 remove_underscore.fn <- function(x) {
     gsub("_", " ", x)
   }
-  confusion_matrix_iter <- get(load("D:/Github/MPH-Funnels-Project/Andrew's Work/ConfusionMatrixByIter.RData"))
+confusion_matrix_iter <- get(load("D:/Github/MPH-Funnels-Project/Andrew's Work/ConfusionMatrixByIter.RData"))
   ####
-  confusion_matrix <- confusion_matrix_iter %>%
+  confusion_matrix_SR <- confusion_matrix_iter %>%
     mutate(PPV = true_positives / (true_positives + false_positives + .Machine$double.eps),
            NPV = true_negatives / (true_negatives + false_negatives),
            MCC_numerator = (true_positives * true_negatives - false_positives * false_negatives),
@@ -208,7 +208,7 @@ remove_underscore.fn <- function(x) {
                                   * (true_negatives + false_positives) * (true_negatives + false_negatives)),
            MCC = MCC_numerator / (MCC_denominator + .Machine$double.eps)
     ) %>%
-    select(-c(MCC_numerator, MCC_denominator)) %>%
+    dplyr::select(-c(MCC_numerator, MCC_denominator)) %>%
     group_by(N, denom_range, outlier_sd_diff, DataType, Adjustment) %>%
     summarise(across(true_positives:MCC, mean, na.rm =TRUE)) %>%
     mutate(denom_range = factor(denom_range, levels=denom_range_levels),
@@ -231,8 +231,9 @@ remove_underscore.fn <- function(x) {
            `Sensitivity` = sensitivity,
            `Specificity` = specificity) %>%
     # Decided to drop TP:FN
-    select(-c(`True Positives`, `False Negatives`, `False Positives`, `True Negatives`)) 
-confusion_matrix %>%
+    dplyr::select(-c(`True Positives`, `False Negatives`, `False Positives`, `True Negatives`)) 
+
+confusion_matrix_SR %>%
     ggplot(aes(
       x = `outlier sd diff`, y = MCC, color = Adjustment, group = Adjustment
     )) +
@@ -242,7 +243,64 @@ confusion_matrix %>%
   facet_wrap(vars(N), ncol = 1, scales = "free") +
   labs(y = "Matthews Correlation Coefficient",
        x = "Outlier Standard Deviation Difference",
-       color = TeX("$\\Psi$ Adjustment Model"))
+       color = "Adjustment Model")
+
+ggsave("mcc_sd.png",
+       path = "D:/Github/MPH-Funnels-Project/Simulations/Final Simulations",
+       width = 20,
+       height = 15,
+       units = "cm")
 
 
-library(latex2exp)
+
+confusion_matrix <- confusion_matrix_iter %>%
+  mutate(PPV = true_positives / (true_positives + false_positives + .Machine$double.eps),
+         NPV = true_negatives / (true_negatives + false_negatives),
+         MCC_numerator = (true_positives * true_negatives - false_positives * false_negatives),
+         MCC_denominator = sqrt((true_positives + false_positives) * (true_positives + false_negatives)
+                                * (true_negatives + false_positives) * (true_negatives + false_negatives)),
+         MCC = MCC_numerator / (MCC_denominator + .Machine$double.eps)
+  ) %>%
+  dplyr::select(-c(MCC_numerator, MCC_denominator)) %>%
+  group_by(N, denom_range, outlier_sd_diff, DataType, Adjustment) %>%
+  summarise(across(true_positives:MCC, mean, na.rm =TRUE)) %>%
+  mutate(denom_range = factor(denom_range, levels=denom_range_levels),
+         Adjustment = factor(Adjustment, levels=c("unadj","add","mult","laney","vidmar"),
+                             labels=c("Unadjusted","Additive","Multiplicative",
+                                      "Laney's","Vidmar's")),
+         outlier_sd_diff = factor(outlier_sd_diff, levels=seq(from=2, to=4, by=0.5),
+                                  labels=paste0(seq(from=2, to=4, by=0.5), "SD")),
+         N = factor(N)) %>%
+  rename_with(remove_underscore.fn)  %>%
+  group_by(DataType, `outlier sd diff`, N, `denom range`, Adjustment) %>%
+  filter(DataType == "pr", 
+         `denom range` == "1-50" ) %>%
+  summarise(across(`true positives`:MCC, mean, na.rm =TRUE)) %>%
+  rename(`Denominator Range` = `denom range`,
+         `True Positives` = `true positives`,
+         `False Negatives` = 'false negatives',
+         `False Positives` = `false positives`,
+         `True Negatives` = 'true negatives',
+         `Sensitivity` = sensitivity,
+         `Specificity` = specificity) %>%
+  # Decided to drop TP:FN
+  dplyr::select(-c(`True Positives`, `False Negatives`, `False Positives`, `True Negatives`)) %>%
+  view()
+
+confusion_matrix %>%
+  ggplot(aes(
+    x = `outlier sd diff`, y = MCC, color = Adjustment, group = Adjustment
+  )) +
+  geom_line() +
+  geom_point() +
+  theme_bw() +
+  facet_wrap(vars(N), ncol = 1, scales = "free") +
+  labs(y = "Matthews Correlation Coefficient",
+       x = "Outlier Standard Deviation Difference",
+       color = "Adjustment Model")
+
+ggsave("mcc_pr.png",
+       path = "D:/Github/MPH-Funnels-Project/Simulations/Final Simulations",
+       width = 20,
+       height = 15,
+       units = "cm")

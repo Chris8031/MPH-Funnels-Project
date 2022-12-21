@@ -209,6 +209,16 @@ ggplot(AREMdf2, aes(x=ni, y=pi,
 glimpse(AREMdf2)
 
 
+ggsave("du_et_al.png", 
+       path = "D:/Github/MPH-Funnels-Project/Real world data application/Du et al Dataset",
+       width = 20,
+       height = 10,
+       units = "cm")
+
+
+
+
+
 first_column <- c("Model", "Above 99CL", "Below 99CL")
 data1 <- data.frame("Laney", 
              sum(AREMdf2$pi > AREMdf2$ul99_laney), 
